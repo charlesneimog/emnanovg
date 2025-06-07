@@ -26,3 +26,8 @@ build/*
 
 ## xcode specific
 *xcuserdata*
+.cache/clangd/index
+example/emnanovg.data
+example/emnanovg.js
+example/emnanovg.wasm
+compile_commands.json

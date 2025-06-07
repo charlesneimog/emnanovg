@@ -1,68 +1,33 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.25)
 
-set(PROJECT_NAME nanovg)
-set(CMAKE_CXX_STANDARD 20)
+set(PROJECT_NAME emnanovg)
 set(CMAKE_C_STANDARD 11)
 
-project(${PROJECT_NAME})
+project(emnanovg)
+option(BUILD_EXAMPLE "Build Example" ON)
 
-if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGL_GLEXT_PROTOTYPES=1 -O3 -Wall -Wreturn-type -Wno-reorder -Wno-implicit-fallthrough -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-deprecated -fmessage-length=0")
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DGL_GLEXT_PROTOTYPES=1 -O3 -Wall -Wno-unused-function -Wno-unused-variable -Wno-unused-parameter -Wno-deprecated")
+add_library(nanovg STATIC "${CMAKE_CURRENT_SOURCE_DIR}/src/nanovg.c")
+target_include_directories(nanovg PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
+
+if(BUILD_EXAMPLE)
+    add_executable(emnanovg "${CMAKE_CURRENT_SOURCE_DIR}/example/main.cpp")
+    if("${CMAKE_C_COMPILER}" MATCHES "emcc$")
+        set_target_properties(
+            emnanovg
+            PROPERTIES
+                LINK_FLAGS
+                "-sMODULARIZE=1 -sEXPORT_NAME='NanoVGModule' -sMIN_WEBGL_VERSION=2  -s EXIT_RUNTIME=1 --preload-file \"${CMAKE_CURRENT_SOURCE_DIR}/example/Roboto-Regular.ttf@/Roboto-Regular.ttf\""
+        )
+        add_definitions(-DNANOVG_GLES3_IMPLEMENTATION)
+        target_link_libraries(emnanovg PRIVATE nanovg embind)
+
+    else()
+        message(FATAL_ERROR "emcc not found")
+    endif()
+
+    install(
+        FILES "${CMAKE_CURRENT_BINARY_DIR}/emnanovg.js" "${CMAKE_CURRENT_BINARY_DIR}/emnanovg.wasm"
+              "${CMAKE_CURRENT_BINARY_DIR}/emnanovg.data"
+        DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/example")
+
 endif()
-
-if(WIN32)
-  # Disable annoying MSVC warnings (all targets)
-  add_definitions(/D "_CRT_SECURE_NO_WARNINGS")
-  add_definitions(/D "NOMINMAX")
-  add_definitions(/D "NDEBUG")
-  add_definitions(/D "_CONSOLE")
-  add_definitions(/D "GLEW_STATIC")
-  add_definitions(/D "UNICODE")
-  add_definitions(/D "_UNICODE")
-
-  # Parallel build on MSVC (all targets)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /Oi /Gy /Ob2 /W3 /openmp")
-
-endif()
-
-set(SRC_DIR "./src")
-file(GLOB SRCS ${SRC_DIR}/*.c)
-file(GLOB HDRS ${SRC_DIR}/*.h)
-
-install(FILES ${HDRS} DESTINATION include/${PROJECT_NAME}/)
-
-add_library(${PROJECT_NAME} ${SRCS})
-
-set(DEFS "")
-if(APPLE)
-        find_library(cocoa_library Cocoa)
-        find_library(opengl_library OpenGL)
-        find_library(corevideo_library CoreVideo)
-        find_library(iokit_library IOKit)
-        set(LIBS  ${cocoa_library} ${opengl_library} ${corevideo_library} ${iokit_library})
-elseif(WIN32)
-        set(LIBS glfw gdi32 winmm user32 GLEW glu32 opengl32 kernel32)
-        # NANOVG_GLEW 
-        set(DEFS _CRT_SECURE_NO_WARNINGS NOMINMAX NDEBUG _CONSOLE GLEW_STATIC UNICODE _UNICODE)
-else()
-        set(LIBS glfw GLEW GLU GL Xext Xi Xrandr X11 Xxf86vm Xinerama Xcursor Xdamage dl z m)
-endif()
-set(COMMON_FILES "example/demo.c" "example/perf.c")
-
-set(TARGETS ${PROJECT_NAME})
-foreach(EXAMPLE_PROJ IN ITEMS gles2 gles3 gl2 gl3 fbo)
-        add_executable(example_${EXAMPLE_PROJ} "example/example_${EXAMPLE_PROJ}.c" ${COMMON_FILES})
-        list(APPEND ${TARGETS} example_${EXAMPLE_PROJ})
-        target_compile_definitions(example_${EXAMPLE_PROJ} PUBLIC ${DEFS})
-        target_link_libraries(example_${EXAMPLE_PROJ} ${PROJECT_NAME} ${LIBS})
-        target_include_directories(example_${EXAMPLE_PROJ} PUBLIC ${SRC_DIR})
-endforeach()
-
-install(TARGETS ${TARGETS}
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        RUNTIME DESTINATION bin
-        INCLUDES DESTINATION include/${PROJECT_NAME}
-)
-
