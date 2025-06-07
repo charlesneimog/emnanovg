@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>emnanovg Example</title>
+        <style>
+            h1,
+            p {
+                text-align: center;
+            }
+        </style>
+    </head>
+    <script src="emnanovg.js"></script>
+    <body>
+        <h1><code>emnanovg</code></h1>
+        <div>
+            <canvas
+                style="
+                    margin: auto;
+                    display: block;
+                    background: #fff;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                    border-radius: 8px;
+                "
+                id="myCanvas"
+                width="800"
+                height="600"
+            ></canvas>
+        </div>
+        <script>
+            NanoVGModule()
+                .then((Module) => {
+                    const ctx = Module.nanoVG("myCanvas");
+                })
+                .catch((e) => {
+                    console.error("Erro no módulo Wasm:", e);
+                });
+        </script>
+    </body>
+</html>
