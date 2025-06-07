@@ -16,7 +16,7 @@ if(BUILD_EXAMPLE)
             emnanovg
             PROPERTIES
                 LINK_FLAGS
-                "-sMODULARIZE=1 -sEXPORT_NAME='NanoVGModule' -sMIN_WEBGL_VERSION=2  -s EXIT_RUNTIME=1 --preload-file \"${CMAKE_CURRENT_SOURCE_DIR}/example/Roboto-Regular.ttf@/Roboto-Regular.ttf\""
+                "-sMODULARIZE=1 -sNO_EXIT_RUNTIME=1 -sEXPORT_NAME='NanoVGModule' -sMIN_WEBGL_VERSION=2  -s EXIT_RUNTIME=1 --preload-file \"${CMAKE_CURRENT_SOURCE_DIR}/example/Roboto-Regular.ttf@/Roboto-Regular.ttf\""
         )
         add_definitions(-DNANOVG_GLES3_IMPLEMENTATION)
         target_link_libraries(emnanovg PRIVATE nanovg embind)

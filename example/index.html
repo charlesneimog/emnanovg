@@ -8,26 +8,39 @@
             p {
                 text-align: center;
             }
+            canvas {
+                width: 98vw;
+                height: 95vh;
+                display: block;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                border-radius: 8px;
+            }
         </style>
     </head>
     <script src="emnanovg.js"></script>
-    <body>
-        <h1><code>emnanovg</code></h1>
-        <div>
-            <canvas
-                style="
-                    margin: auto;
-                    display: block;
-                    background: #fff;
-                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-                    border-radius: 8px;
-                "
-                id="myCanvas"
-                width="800"
-                height="600"
-            ></canvas>
-        </div>
+    <body
+        style="
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        "
+    >
+        <canvas id="myCanvas" style="width: 98vw; height: 95vh; display: block"></canvas>
         <script>
+            function setupCanvasDPI(canvasId) {
+                const canvas = document.getElementById(canvasId);
+                const dpr = window.devicePixelRatio || 1;
+                const rect = canvas.getBoundingClientRect();
+
+                // Set actual canvas size in device pixels
+                canvas.width = rect.width * dpr;
+                canvas.height = rect.height * dpr;
+            }
+
+            setupCanvasDPI("myCanvas");
             NanoVGModule()
                 .then((Module) => {
                     const ctx = Module.nanoVG("myCanvas");
